@@ -1,0 +1,39 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "com.imerzn/imerzn",
+  "description": "Travel experiences marketplace: search Imerzn's catalog of ~32k experiences by location, discover named Localite guides, and retrieve full experience detail. Live Streamable HTTP MCP server. No API key required.",
+  "title": "Imerzn",
+  "websiteUrl": "https://imerzn.com",
+  "repository": {
+    "url": "https://github.com/sattaru/imerzn-mcp-server",
+    "source": "github"
+  },
+  "version": "1.0.0",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://imerzn.com/mcp"
+    }
+  ],
+  "_meta": {
+    "io.modelcontextprotocol.registry/publisher-provided": {
+      "com.imerzn": {
+        "serverDisplayName": "Imerzn",
+        "manifestUrl": "https://imerzn.com/.well-known/mcp/manifest.json",
+        "openapiUrl": "https://imerzn.com/openapi.json",
+        "tagline": "Stories, Not Stops®",
+        "toolCount": 4,
+        "tools": [
+          "search_experiences",
+          "list_local_guides",
+          "get_experience_detail",
+          "list_blog_articles"
+        ],
+        "rateLimitPerMinutePerIp": 60,
+        "authRequired": false,
+        "protocolVersion": "2025-03-26",
+        "firstPublished": "2026-10-03"
+      }
+    }
+  }
+}
