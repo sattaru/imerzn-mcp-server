@@ -1,0 +1,78 @@
+name: Manifest Health Check
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    # Daily at 08:00 UTC
+    - cron: '0 8 * * *'
+
+jobs:
+  manifest-check:
+    name: Verify live MCP manifest
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Fetch manifest and check HTTP 200
+        id: fetch
+        run: |
+          HTTP_CODE=$(curl -s -o /tmp/manifest.json -w "%{http_code}" \
+            https://imerzn.com/.well-known/mcp/manifest.json)
+          echo "http_code=$HTTP_CODE" >> "$GITHUB_OUTPUT"
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "::error::Manifest returned HTTP $HTTP_CODE (expected 200)"
+            exit 1
+          fi
+          echo "HTTP 200 OK"
+
+      - name: Validate manifest is valid JSON
+        run: |
+          if ! python3 -c "import json,sys; json.load(open('/tmp/manifest.json'))"; then
+            echo "::error::Manifest is not valid JSON"
+            cat /tmp/manifest.json
+            exit 1
+          fi
+          echo "Valid JSON confirmed"
+
+      - name: Verify manifest contains required fields
+        run: |
+          python3 - <<'EOF'
+          import json, sys
+          with open('/tmp/manifest.json') as f:
+              manifest = json.load(f)
+          required = ['name_for_human', 'api']
+          missing = [k for k in required if k not in manifest]
+          if missing:
+              print(f"::error::Manifest missing required fields: {missing}")
+              sys.exit(1)
+          print(f"Manifest OK — name: {manifest.get('name_for_human')}")
+          EOF
+
+      - name: Verify MCP endpoint responds to tools/list
+        run: |
+          RESPONSE=$(curl -s -X POST https://imerzn.com/mcp \
+            -H "Content-Type: application/json" \
+            --data '{"jsonrpc":"2.0","method":"tools/list","id":1}' \
+            --max-time 15)
+          TOOL_COUNT=$(echo "$RESPONSE" | python3 -c "
+          import json,sys
+          d = json.load(sys.stdin)
+          tools = d.get('result', {}).get('tools', [])
+          print(len(tools))
+          " 2>/dev/null || echo "0")
+          if [ "$TOOL_COUNT" -lt "1" ]; then
+            echo "::error::MCP tools/list returned 0 tools or failed. Response: $RESPONSE"
+            exit 1
+          fi
+          echo "MCP endpoint healthy — $TOOL_COUNT tools available"
+
+      - name: Post summary
+        if: always()
+        run: |
+          echo "## Imerzn MCP Manifest Check" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Check | Result |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Manifest HTTP status | ${{ steps.fetch.outputs.http_code }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Manifest URL | https://imerzn.com/.well-known/mcp/manifest.json |" >> $GITHUB_STEP_SUMMARY
+          echo "| MCP endpoint | https://imerzn.com/mcp |" >> $GITHUB_STEP_SUMMARY

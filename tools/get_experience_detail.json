@@ -1,0 +1,14 @@
+{
+  "name": "get_experience_detail",
+  "description": "Retrieve full detail for a single experience by its ID. ID formats: numeric (native imerzn posts), `p-{partner}-a{activity}` (Bokun activities), or a slug string (Oddball games).",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "Experience ID. Numeric for native, `p-N-aM` for Bokun, slug for Oddball."
+      }
+    },
+    "required": ["id"]
+  }
+}

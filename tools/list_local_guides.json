@@ -1,0 +1,29 @@
+{
+  "name": "list_local_guides",
+  "description": "List verified Imerzn Localites (local travel guides) and curator partners for a country, state, or city. Returns guide profile summaries.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "country": {
+        "type": "string",
+        "description": "Country to filter by."
+      },
+      "state": {
+        "type": "string",
+        "description": "State/region to filter by."
+      },
+      "city": {
+        "type": "string",
+        "description": "City to filter by."
+      },
+      "number_of_rows": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 200,
+        "default": 20,
+        "description": "Page size cap. Defaults to 20. Maximum 200."
+      }
+    },
+    "required": []
+  }
+}
